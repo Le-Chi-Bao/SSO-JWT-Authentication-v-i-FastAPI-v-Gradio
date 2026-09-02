@@ -1,0 +1,65 @@
+version: "3.8"
+
+# ============================================================
+# DOCKER-COMPOSE.yml - Development
+# Chạy services trực tiếp từ source code (không build)
+# Dùng khi đã có code chạy local và muốn đóng gói
+# ============================================================
+
+services:
+  # ----------------------------------------------------------
+  # AUTH SERVER - Xác thực JWT (port 8000)
+  # ----------------------------------------------------------
+  auth_server:
+    image: python:3.11-slim
+    container_name: auth_server
+    working_dir: /app
+    command: sh -c "pip install fastapi uvicorn pyjwt pydantic && uvicorn auth_server:app --host 0.0.0.0 --port 8000"
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    networks:
+      - app_network
+
+  # ----------------------------------------------------------
+  # PRODUCT SERVICE - Quản lý sản phẩm (port 8001)
+  # ----------------------------------------------------------
+  product_service:
+    image: python:3.11-slim
+    container_name: product_service
+    working_dir: /app
+    command: sh -c "pip install fastapi uvicorn pyjwt pydantic && uvicorn product_service:app --host 0.0.0.0 --port 8001"
+    volumes:
+      - .:/app
+    ports:
+      - "8001:8001"
+    networks:
+      - app_network
+    depends_on:
+      - auth_server
+
+  # ----------------------------------------------------------
+  # GRADIO APP - Giao diện web (port 7860)
+  # ----------------------------------------------------------
+  gradio_app:
+    image: python:3.11-slim
+    container_name: gradio_app
+    working_dir: /app
+    command: sh -c "pip install gradio requests fastapi uvicorn pyjwt pydantic && python gradio_app.py"
+    volumes:
+      - .:/app
+    ports:
+      - "7860:7860"
+    networks:
+      - app_network
+    depends_on:
+      - auth_server
+      - product_service
+
+# ----------------------------------------------------------
+# NETWORKS - Mạng nội bộ
+# ----------------------------------------------------------
+networks:
+  app_network:
+    driver: bridge

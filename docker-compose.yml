@@ -1,0 +1,67 @@
+version: "3.8"
+
+# ============================================================
+# DOCKER-COMPOSE.yml
+# Chạy 3 services: Auth, Product, Gradio
+# ============================================================
+
+services:
+  # ----------------------------------------------------------
+  # AUTH SERVER - Xác thực JWT
+  # ----------------------------------------------------------
+  auth_server:
+    build:
+      context: .
+      dockerfile: Dockerfile.auth
+    container_name: auth_server
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+    networks:
+      - app_network
+    restart: unless-stopped
+
+  # ----------------------------------------------------------
+  # PRODUCT SERVICE - Quản lý sản phẩm
+  # ----------------------------------------------------------
+  product_service:
+    build:
+      context: .
+      dockerfile: Dockerfile.product
+    container_name: product_service
+    ports:
+      - "8001:8001"
+    environment:
+      - PYTHONUNBUFFERED=1
+    networks:
+      - app_network
+    depends_on:
+      - auth_server
+    restart: unless-stopped
+
+  # ----------------------------------------------------------
+  # GRADIO APP - Giao diện web
+  # ----------------------------------------------------------
+  gradio_app:
+    build:
+      context: .
+      dockerfile: Dockerfile.grado
+    container_name: gradio_app
+    ports:
+      - "7860:7860"
+    environment:
+      - PYTHONUNBUFFERED=1
+    networks:
+      - app_network
+    depends_on:
+      - auth_server
+      - product_service
+    restart: unless-stopped
+
+# ----------------------------------------------------------
+# NETWORKS - Mạng nội bộ để các service giao tiếp
+# ----------------------------------------------------------
+networks:
+  app_network:
+    driver: bridge

@@ -1,0 +1,21 @@
+# ============================================================
+# DOCKERFILE.gradio - Gradio App
+# Base image: Python 3.11 slim
+# ============================================================
+
+FROM python:3.11-slim
+
+# Thiết lập working directory
+WORKDIR /app
+
+# Cài đặt dependencies
+RUN pip install --no-cache-dir gradio requests fastapi uvicorn pyjwt pydantic
+
+# Copy source code
+COPY gradio_app.py .
+
+# Expose port
+EXPOSE 7860
+
+# Chạy service
+CMD ["python", "gradio_app.py"]
