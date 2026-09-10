@@ -28,19 +28,57 @@ ALGORITHM = "HS256"
 security = HTTPBearer()
 
 # ============================================================
-# FAKE DATABASE - Lưu trữ sản phẩm mẫu
+# FAKE DATABASE - Lưu trữ sản phẩm mẫu (30 sản phẩm demo)
 # ============================================================
 
-# Danh sách sản phẩm mẫu
 FAKE_PRODUCTS_DB = [
-    {"id": 1, "name": "Laptop", "price": 15000000, "stock": 10},
-    {"id": 2, "name": "Điện thoại", "price": 8000000, "stock": 25},
-    {"id": 3, "name": "Tai nghe", "price": 500000, "stock": 50},
-    {"id": 4, "name": "Bàn phím", "price": 300000, "stock": 30},
+    # Electronics - Máy tính & Laptop
+    {"id": 1, "name": "Laptop Gaming ASUS ROG", "price": 32000000, "stock": 15},
+    {"id": 2, "name": "MacBook Pro 14 inch M3", "price": 45000000, "stock": 8},
+    {"id": 3, "name": "Laptop Dell XPS 15", "price": 28000000, "stock": 12},
+    {"id": 4, "name": "MacBook Air M2", "price": 25000000, "stock": 20},
+    {"id": 5, "name": "Laptop HP Pavilion 15", "price": 18000000, "stock": 18},
+
+    # Điện thoại & Tablet
+    {"id": 6, "name": "iPhone 15 Pro Max", "price": 32000000, "stock": 25},
+    {"id": 7, "name": "Samsung Galaxy S24 Ultra", "price": 28000000, "stock": 22},
+    {"id": 8, "name": "Xiaomi 14 Pro", "price": 15000000, "stock": 30},
+    {"id": 9, "name": "OPPO Find X7", "price": 18000000, "stock": 15},
+    {"id": 10, "name": "iPad Pro 12.9 M4", "price": 35000000, "stock": 10},
+
+    # Phụ kiện âm thanh
+    {"id": 11, "name": "AirPods Pro 2", "price": 6500000, "stock": 50},
+    {"id": 12, "name": "Sony WH-1000XM5", "price": 8500000, "stock": 35},
+    {"id": 13, "name": "Samsung Galaxy Buds2 Pro", "price": 4500000, "stock": 40},
+    {"id": 14, "name": "Tai nghe Bluetooth JBL", "price": 2200000, "stock": 60},
+    {"id": 15, "name": "Loa JBL Flip 6", "price": 3500000, "stock": 45},
+
+    # Phụ kiện máy tính
+    {"id": 16, "name": "Chuột Logitech MX Master 3S", "price": 2800000, "stock": 55},
+    {"id": 17, "name": "Bàn phím cơ Keychron K8", "price": 3500000, "stock": 40},
+    {"id": 18, "name": "Màn hình LG 27 inch 4K", "price": 12000000, "stock": 20},
+    {"id": 19, "name": "Webcam Logitech Brio 4K", "price": 5500000, "stock": 30},
+    {"id": 20, "name": "Micro USB Elgato Wave 3", "price": 3800000, "stock": 25},
+
+    # Thiết bị lưu trữ
+    {"id": 21, "name": "Ổ SSD Samsung 1TB", "price": 2500000, "stock": 80},
+    {"id": 22, "name": "USB SanDisk 128GB", "price": 350000, "stock": 100},
+    {"id": 23, "name": "Ổ cứng HDD 4TB WD", "price": 2200000, "stock": 35},
+    {"id": 24, "name": "Card đồ họa RTX 4060", "price": 12000000, "stock": 12},
+
+    # Thiết bị thông minh
+    {"id": 25, "name": "Apple Watch Ultra 2", "price": 22000000, "stock": 18},
+    {"id": 26, "name": "Samsung Galaxy Watch 6", "price": 8500000, "stock": 28},
+    {"id": 27, "name": "Xiaomi Band 8 Pro", "price": 1500000, "stock": 70},
+    {"id": 28, "name": "Kính Meta Quest 3", "price": 18000000, "stock": 15},
+
+    # Smart Home
+    {"id": 29, "name": "Loa thông minh Alexa", "price": 2500000, "stock": 40},
+    {"id": 30, "name": "Robot hút bụi Xiaomi", "price": 6500000, "stock": 25},
 ]
 
 # Biến đếm ID cho sản phẩm mới
-product_id_counter = 5
+product_id_counter = 31  # ID tiếp theo cho sản phẩm mới
 
 # ============================================================
 # PYDANTIC MODELS - Định nghĩa schemas
@@ -77,86 +115,38 @@ class ErrorResponse(BaseModel):
 
 def decode_jwt_token(token: str) -> dict:
     """
-    Giải mã và xác thực JWT token
-
-    Cách hoạt động của JWT Verification:
-    1. Nhận token dạng string (VD: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
-    2. Tách token thành 3 phần (header.payload.signature) bằng dấu "."
-    3. Verify signature bằng SECRET_KEY và thuật toán HS256
-    4. Kiểm tra expiration time (exp) trong payload
-    5. Trả về payload đã giải mã nếu hợp lệ
-
-    Args:
-        token: JWT token string
-
-    Returns:
-        Dictionary chứa payload đã giải mã
-
-    Raises:
-        HTTPException: Khi token hết hạn hoặc không hợp lệ
+    Giai ma va xac thuc JWT token
     """
     try:
-        # jwt.decode() sẽ:
-        # - Tự động tách token thành 3 phần
-        # - Verify signature với SECRET_KEY
-        # - Kiểm tra exp (expiration)
-        # - Trả về payload dạng dict
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload
-
     except jwt.ExpiredSignatureError:
-        # Token đã hết hạn (exp time đã qua)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token đã hết hạn. Vui lòng đăng nhập lại."
+            detail="Token da het han. Vui long dang nhap lai."
         )
-
     except jwt.InvalidTokenError:
-        # Token không hợp lệ:
-        # - Signature không đúng
-        # - Token bị corrupt/modify
-        # - Thuật toán không khớp
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token không hợp lệ."
+            detail="Token khong hop le."
         )
 
-def verify_token(credentials: HTTPAuthorizationCredentials) -> dict:
+def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)) -> dict:
     """
-    Dependency để verify JWT từ header Authorization
-
-    Args:
-        credentials: Bearer token từ HTTP Authorization header
-
-    Returns:
-        Payload đã giải mã từ token
+    Dependency de verify JWT tu header Authorization.
     """
-    token = credentials.credentials
-    return decode_jwt_token(token)
+    return decode_jwt_token(credentials.credentials)
 
 def require_admin(current_user: dict = Depends(verify_token)) -> dict:
     """
-    Dependency để yêu cầu quyền admin
-
-    Sử dụng khi cần kiểm tra user có role "admin" hay không
-
-    Args:
-        current_user: Payload từ token đã được verify
-
-    Returns:
-        Payload của user nếu là admin
-
-    Raises:
-        HTTPException 403: Khi user không có quyền admin
+    Dependency yeu cau quyen admin
     """
     role = current_user.get("role")
-
     if role != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Bạn không có quyền thực hiện thao tác này. Chỉ admin mới được phép."
+            detail="Ban khong co quyen. Chi admin duoc phep."
         )
-
     return current_user
 
 # ============================================================
@@ -204,19 +194,6 @@ async def get_products():
 async def get_products_protected(
     current_user: dict = Depends(verify_token)
 ):
-    """
-    Trả về danh sách sản phẩm kèm thông tin người tạo.
-
-    API này PROTECTED - cần có JWT token hợp lệ.
-    Token được extract từ header: Authorization: Bearer <token>
-
-    Quy trình xử lý:
-    1. Đọc Authorization header
-    2. Tách "Bearer " prefix và lấy token
-    3. Gọi verify_token() để decode và xác thực
-    4. Nếu hợp lệ, trả về dữ liệu kèm username
-    5. Nếu không hợp lệ, trả về lỗi 401
-    """
     username = current_user.get("sub", "unknown")
 
     # Trả về products với thông tin người truy cập
@@ -254,16 +231,16 @@ async def create_product(
     """
     Tạo sản phẩm mới trong database.
 
-    API này yêu cầu:
-    1. JWT token hợp lệ
-    2. Token phải có role = "admin"
+    API nay yeu cau:
+    1. JWT token hop le
+    2. Token phai co role = "admin"
 
-    Quy trình xử lý:
-    1. verify_token() - Kiểm tra token có hợp lệ không
-    2. require_admin() - Kiểm tra role có phải admin không
-    3. Nếu cả 2 đều OK → tạo sản phẩm
-    4. Nếu token lỗi → 401 Unauthorized
-    5. Nếu không phải admin → 403 Forbidden
+    Quy trinh xu ly:
+    1. verify_token() - Kiem tra token co hop le khong
+    2. require_admin() - Kiem tra role co phai admin khong
+    3. Neu ca 2 deu OK -> tao san pham
+    4. Neu token loi -> 401 Unauthorized
+    5. Neu khong phai admin -> 403 Forbidden
     """
     global product_id_counter
 
