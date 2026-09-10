@@ -270,6 +270,32 @@ with gr.Blocks(
     css="""
     .main-title {text-align: center; font-size: 24px; font-weight: bold;}
     .subtitle {text-align: center; color: gray;}
+    .product-hero {
+        padding: 18px 22px;
+        margin: 4px 0 16px;
+        border: 1px solid #d9ddff;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #f4f5ff 0%, #ffffff 100%);
+    }
+    .product-input-card, .product-result-card {
+        min-height: 390px;
+        padding: 16px;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        background: white;
+        box-shadow: 0 4px 14px rgba(31, 41, 55, 0.06);
+    }
+    .product-input-card {border-top: 4px solid #6366f1;}
+    .product-result-card {border-top: 4px solid #14b8a6;}
+    .product-steps ol {margin: 8px 0 0 20px; padding: 0;}
+    .product-steps li {margin: 6px 0;}
+    .product-note {
+        margin-top: 14px;
+        padding: 10px 12px;
+        border-left: 4px solid #6366f1;
+        border-radius: 6px;
+        background: #f4f5ff;
+    }
     """
 ) as demo:
 
@@ -334,31 +360,54 @@ with gr.Blocks(
         # TAB 2: XEM SẢN PHẨM
         # ----------------------------------------------------------
         with gr.TabItem("📦 Xem sản phẩm"):
-            gr.Markdown("### Xem danh sách sản phẩm (cần đăng nhập)")
+            gr.HTML("""
+            <div class="product-hero">
+                <h2 style="margin: 0; color: #1e293b;">Xem danh sách sản phẩm</h2>
+                <p style="margin: 8px 0 0; color: #475569;">
+                    Dùng JWT Token hợp lệ để truy cập danh sách sản phẩm được bảo vệ.
+                </p>
+            </div>
+            """)
 
             with gr.Row():
                 with gr.Column(scale=1):
-                    # Ô nhập token
-                    view_token_input = gr.Textbox(
-                        label="JWT Token",
-                        placeholder="Dán JWT token vào đây",
-                        lines=3
-                    )
+                    with gr.Group(elem_classes="product-input-card"):
+                        gr.Markdown("### 1. Xác thực truy cập")
+                        gr.Markdown("Dán token bạn nhận được sau khi đăng nhập.")
 
-                    # Nút xem sản phẩm
-                    view_btn = gr.Button("Xem sản phẩm", variant="primary")
+                        view_token_input = gr.Textbox(
+                            label="JWT Token",
+                            placeholder="Dán JWT token vào đây",
+                            lines=4
+                        )
+
+                        view_btn = gr.Button("📦 Xem sản phẩm", variant="primary", size="lg")
+
+                        gr.HTML("""
+                        <div class="product-note product-steps">
+                            <strong>Quy trình</strong>
+                            <ol>
+                                <li>Dán JWT Token.</li>
+                                <li>Nhấn nút xem sản phẩm.</li>
+                                <li>Hệ thống kiểm tra token trước khi trả dữ liệu.</li>
+                            </ol>
+                        </div>
+                        """)
 
                 with gr.Column(scale=2):
-                    # Kết quả
-                    view_output = gr.Textbox(
-                        label="Danh sách sản phẩm",
-                        lines=15,
-                        interactive=False
-                    )
+                    with gr.Group(elem_classes="product-result-card"):
+                        gr.Markdown("### 2. Kết quả truy cập")
+                        gr.Markdown("Danh sách sản phẩm sẽ xuất hiện sau khi JWT Token được xác thực thành công.")
+                        view_output = gr.Textbox(
+                            label="Danh sách sản phẩm",
+                            placeholder="Kết quả sẽ hiển thị ở đây...",
+                            lines=15,
+                            interactive=False
+                        )
 
-            gr.Markdown("""
-            **💡 Mẹo:** Sau khi đăng nhập, copy token từ tab "Đăng nhập" và dán vào đây.
-            """)
+            gr.Markdown(
+                "> **Quyền truy cập:** Admin, User và Viewer đều có thể xem sản phẩm khi dùng JWT Token hợp lệ."
+            )
 
             # Sự kiện
             view_btn.click(
